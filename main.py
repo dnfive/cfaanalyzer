@@ -8,7 +8,10 @@ except ImportError:
     import ConfigParser as configparser
 import os
 
-url = "https://www.transfermarkt.world/ypsonas-fc/startseite/verein/57870/saison_id/2022"
+
+backupMode = False # Если включён, то производится только резервное копирование
+url = "https://www.transfermarkt.world/ypsonas-fc/startseite/verein/57870/saison_id/2022" # ФК Красава
+#url = "https://www.transfermarkt.world/po-xylotymbou/startseite/verein/55927/saison_id/2022" #Ксилотимбу
 
 headers = {
 	"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -81,9 +84,27 @@ def AddPlayer(counter_player, data):
 		print("Не удалось добавить игрока в базу данных!")
 		print("Ошибка SQLite: ", error)
 
+def backupCopy():
+	try:
+	    sqlite_con = sqlite3.connect('ypsonas.db')
+	    backup_con = sqlite3.connect('ypsonas_backup.db')
+	    with backup_con:
+	        sqlite_con.backup(backup_con)
+	    print("Резервное копирование выполнено успешно")
+	except sqlite3.Error as error:
+	    print("Ошибка при резервном копировании: ", error)
+	finally:
+	    if(backup_con):
+	        backup_con.close()
+	        sqlite_con.close()
+
 def main():
 	#name_club = soup.find("h1", class_="data-header__headline-wrapper").text.strip()
 	#print(name_club)
+	if backupMode:
+		backupCopy()
+		return
+
 	settings = readConfig("settings.ini")
 	settings['counter_player'] = int(settings['counter_player'])
 	if not int(settings['database_created']) == 1:
@@ -96,7 +117,8 @@ def main():
 		player = {
 		'name': position.find_next("span", class_="show-for-small").find_next("a").get("title"),
 		'position': position.find_next("tr").find_next("tr").find_next("td").get_text(),
-		'birthday': position.next.find_next('td', class_="zentriert").get_text()
+		'birthday': position.next.find_next('td', class_="zentriert").get_text(),
+		'club': "FC Krasava"
 		}
 		AddPlayer(settings['counter_player'], player)
 		settings['counter_player'] += 1
