@@ -35,7 +35,8 @@ def createBase():
 			id INTEGER PRIMARY KEY,
 			name TEXT,
 			position TEXT,
-			birthday TEXT);'''
+			birthday TEXT,
+			club TEXT);'''
 	cursor.execute(query)
 	sqlite_connection.commit()
 	print("Таблица players создана!")
@@ -72,9 +73,9 @@ def writeConfig(path, data):
 def AddPlayer(counter_player, data):
 	try:
 		query = '''INSERT INTO players 
-				(id, name, position, birthday)
-				VALUES (?, ?, ?, ?)'''
-		cursor.execute(query, (counter_player, data['name'], data['position'], data['birthday']))
+				(id, name, position, birthday, club)
+				VALUES (?, ?, ?, ?, ?)'''
+		cursor.execute(query, (counter_player, data['name'], data['position'], data['birthday'], data['club']))
 		sqlite_connection.commit()
 	except sqlite3.Error as error:
 		print("Не удалось добавить игрока в базу данных!")
@@ -89,7 +90,7 @@ def main():
 		createBase()
 		settings['database_created'] = 1
 		writeConfig("settings.ini", settings)
-		
+
 	positions = soup.find_all("table", class_="inline-table")
 	for position in positions:
 		player = {
